@@ -1,0 +1,11 @@
+{
+ "ts": "2026-08-28T01:12:42Z",
+ "target": "ci-worker-02",
+ "mode": "full-tree",
+ "scanned": 8,
+ "fixed_n": 2,
+ "fixed": [
+  "inbox/QFOS-BULLETIN-20260826.md",
+  "inbox/QFOS-INDUCT-01.md"
+ ]
+}

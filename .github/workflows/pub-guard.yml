@@ -1,0 +1,41 @@
+name: pub-guard
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+permissions:
+  contents: write
+  # rationale: R1-CLASSIFY闸(hub植)——无CLASSIFY: L1标md入guard/quarantine;hub classify-sweep定期清空隔离区入私仓
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 2}
+      - name: classify-gate
+        run: |
+          python3 - <<'PYEOF2'
+          import os,json,subprocess,time
+          changed=subprocess.run(['git','diff','--name-only','HEAD~1','HEAD'],capture_output=True,text=True).stdout.split()
+          quar=[]
+          for p in changed:
+              if not p.endswith('.md') or not os.path.isfile(p): continue
+              if p.startswith(('bridge/guard/','guard/quarantine/')): continue
+              if p in ('README.md','INDEX.md','MANIFEST.md'): continue
+              try: htxt=open(p,encoding='utf-8').read()[:2000]
+              except Exception: continue
+              if 'CLASSIFY: L1' not in htxt:
+                  qp='guard/quarantine/'+p
+                  os.makedirs(os.path.dirname(qp) or '.',exist_ok=True)
+                  os.replace(p,qp); quar.append(p)
+          if quar:
+              os.makedirs('guard/quarantine',exist_ok=True)
+              open('guard/quarantine/_last.json','w').write(json.dumps({'ts':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'quarantined':quar},ensure_ascii=False))
+              subprocess.run(['git','config','user.name','pub-guard']); subprocess.run(['git','config','user.email','guard@local'])
+              subprocess.run(['git','add','-A'])
+              subprocess.run(['git','commit','-m','classify-gate: '+str(len(quar))+'件无标md入隔离区(hub sweep将迁私仓) [skip ci]','-q'])
+              for i in range(3):
+                  if subprocess.run(['git','pull','--rebase','-q'],capture_output=True).returncode==0 and subprocess.run(['git','push','-q'],capture_output=True).returncode==0: break
+                  time.sleep(3+i*3)
+          print(json.dumps({'quarantined':len(quar)}))
+          PYEOF2

@@ -25,7 +25,7 @@ def decide(pushed_at, lease, tnow, stale_s=1800):
     if holder=="ci-worker-02" and state=="active": return ("ALREADY_MINE","lease-mine")
     return ("TAKEOVER","pulse-stale:%ds holder=%s"%(age,holder))
 def main():
-    tok=os.environ.get("GITHUB_TOKEN") or os.environ.get("LINE_PAT")
+    tok=os.environ.get("LINE_PAT") or os.environ.get("GITHUB_TOKEN")  # 跨仓钥优先: GITHUB_TOKEN仅本仓域,读毂脉/lease须LINE_PAT
     if not tok: print("[standby] no key, stand down"); return 0
     g=G(tok); tnow=now()
     repo=g.get("/repos/chepin-ai/ci-worker-01")

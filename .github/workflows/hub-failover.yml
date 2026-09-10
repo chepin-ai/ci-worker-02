@@ -1,0 +1,23 @@
+name: hub-failover
+on:
+  repository_dispatch:
+    types: [hub-failover]
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: hub-failover
+  cancel-in-progress: false
+jobs:
+  standby:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - name: standby-hub 三验接棒
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LINE_PAT: ${{ secrets.CI_OPS_LINE_KEY }}
+        run: python3 standby_hub.py

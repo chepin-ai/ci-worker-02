@@ -1,8 +1,10 @@
 {
- "ts": "2026-09-10T06:46:33Z",
+ "ts": "2026-10-08T05:08:09Z",
  "target": "ci-worker-02",
  "mode": "full-tree",
- "scanned": 6,
- "fixed_n": 0,
- "fixed": []
+ "scanned": 7,
+ "fixed_n": 1,
+ "fixed": [
+  "standby_hub.py"
+ ]
 }

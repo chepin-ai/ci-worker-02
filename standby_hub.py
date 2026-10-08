@@ -22,10 +22,10 @@ def decide(pushed_at, lease, tnow, stale_s=1800):
     age=(tnow-parse(pushed_at)).total_seconds()
     if age<=stale_s: return ("STAND_DOWN", "pulse-alive:%ds"%age)
     holder=lease.get("holder"); state=lease.get("state")
-    if holder=="ci-worker-02" and state=="active": return ("ALREADY_MINE","lease-mine")
+    if holder=="〈RED〉" and state=="active": return ("ALREADY_MINE","lease-mine")
     return ("TAKEOVER","pulse-stale:%ds holder=%s"%(age,holder))
 def main():
-    tok=os.environ.get("LINE_PAT") or os.environ.get("GITHUB_TOKEN")  # 跨仓钥优先: GITHUB_TOKEN仅本仓域,读毂脉/lease须LINE_PAT
+    tok=os.environ.get("〈RED〉") or os.environ.get("GITHUB_TOKEN")  # 跨仓钥优先: GITHUB_TOKEN仅本仓域,读毂脉/lease须LINE_PAT
     if not tok: print("[standby] no key, stand down"); return 0
     g=G(tok); tnow=now()
     repo=g.get("/repos/chepin-ai/ci-worker-01")
@@ -34,9 +34,9 @@ def main():
     print("[standby] verdict:",verdict,reason)
     if verdict!="TAKEOVER": return 0
     fence=lease.get("fence","?")
-    new_lease=dict(lease); new_lease.update({"holder":"ci-worker-02","fence":hashlib.sha256((fence+iso(tnow)).encode()).hexdigest()[:16],"ts":iso(tnow),"state":"active-failover"})
-    g.put("chepin-ai/ci-control","bridge/HA-LEASE-01.json",json.dumps(new_lease,ensure_ascii=False,indent=1),"HA-LEASE takeover by ci-worker-02 fence="+new_lease["fence"])
-    log={"ts":iso(tnow),"kind":"failover-takeover","reason":reason,"by":"ci-worker-02","lease":new_lease["fence"]}
+    new_lease=dict(lease); new_lease.update({"holder":"〈RED〉","fence":hashlib.sha256((fence+iso(tnow)).encode()).hexdigest()[:16],"ts":iso(tnow),"state":"active-failover"})
+    g.put("chepin-ai/ci-control","bridge/HA-LEASE-01.json",json.dumps(new_lease,ensure_ascii=False,indent=1),"HA-LEASE takeover by 〈RED〉 fence="+new_lease["fence"])
+    log={"ts":iso(tnow),"kind":"failover-takeover","reason":reason,"by":"〈RED〉","lease":new_lease["fence"]}
     g.put("chepin-ai/ci-control","bridge/ha/"+iso(tnow)+"-takeover.json",json.dumps(log,ensure_ascii=False,indent=1),"failover-takeover 账录 beat41+")
     print("[standby] TAKEOVER recorded; patrol-lite done (DISC tick deferred to main loop mirror)")
     return 0
